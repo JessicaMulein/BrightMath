@@ -2,7 +2,7 @@ import CMYKColor from './cmykColor';
 import IBaseColor from './iBaseColor';
 import { EColorSource } from './enumerations';
 import RGBColor from './rgbColor';
-import BaseColorObject from './baseColorObject';
+import BaseColorDataTransferObject from './baseColorDTO';
 import { colorChannelCountMap } from './maps';
 import RGBAColor from './rgbaColor';
 
@@ -40,7 +40,7 @@ export default abstract class NullableBaseColor implements IBaseColor {
     }
   }
 
-  public static fromObject (value: BaseColorObject): RGBColor | RGBAColor | CMYKColor {
+  public static fromObject (value: BaseColorDataTransferObject): RGBColor | RGBAColor | CMYKColor {
     if (value.red !== undefined && value.green !== undefined && value.blue !== undefined && value.alpha === undefined) {
         return new RGBColor(value.bitDepth, value.red, value.green, value.blue);
     } else if (value.red !== undefined && value.green !== undefined && value.blue !== undefined && value.alpha !== undefined) {
@@ -52,9 +52,9 @@ export default abstract class NullableBaseColor implements IBaseColor {
     }
   }
 
-  public toObject (): BaseColorObject {
+  public toObject (): BaseColorDataTransferObject {
     if (this instanceof RGBColor) {
-      return new BaseColorObject(
+      return new BaseColorDataTransferObject(
         this.bitDepth,
         this.red,
         this.green,
@@ -65,7 +65,7 @@ export default abstract class NullableBaseColor implements IBaseColor {
         undefined /* black */,
         undefined /* alpha */);
     } else if (this instanceof RGBAColor) {
-      return new BaseColorObject(
+      return new BaseColorDataTransferObject(
         this.bitDepth,
         this.red,
         this.green,
@@ -76,7 +76,7 @@ export default abstract class NullableBaseColor implements IBaseColor {
         undefined /* black */,
         this.alpha);
     } else if (this instanceof CMYKColor) {
-      return new BaseColorObject(
+      return new BaseColorDataTransferObject(
         this.bitDepth,
         undefined /* red */,
         undefined /* green */,
