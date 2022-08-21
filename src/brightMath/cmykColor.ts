@@ -10,20 +10,12 @@ export default class CMYKColor extends NullableBaseColor implements IBaseColor {
   public readonly magenta: bigint;
   public readonly yellow: bigint;
   public readonly black: bigint;
-  public readonly bitDepth: number;
-  public readonly sourceColorBase: EColorSource;
-  public readonly maxValue: bigint;
   public constructor (bitDepth: number, cyan: bigint | null, magenta: bigint | null, yellow: bigint | null, black: bigint | null) {
     const isNull = (cyan === null && magenta === null && yellow === null && black === null);
     if (!isNull && (cyan === null || magenta === null || yellow === null || black === null)) {
       throw new Error('CMYKColor: All parameters must be provided or null.');
     }
     super(EColorSource.CMYK, bitDepth, isNull);
-    /* these three lines should be in the super constructor */
-    this.bitDepth = bitDepth;
-    this.sourceColorBase = EColorSource.RGB;
-    this.maxValue = 2n ** BigInt(bitDepth); - 1n;
-    // end super constructor code
     this.cyan = cyan === null ? 0n : NullableBaseColor.boundValue(cyan, this.maxValue);
     this.magenta = magenta === null ? 0n : NullableBaseColor.boundValue(magenta, this.maxValue);
     this.yellow = yellow === null ? 0n : NullableBaseColor.boundValue(yellow, this.maxValue);
@@ -89,7 +81,7 @@ export default class CMYKColor extends NullableBaseColor implements IBaseColor {
     }
   }
 
-  public validate (): boolean {
+  public override validate (): boolean {
     return super.validate() &&
             (this.cyan >= 0n && this.cyan <= this.maxValue) &&
             (this.magenta >= 0n && this.magenta <= this.maxValue) &&

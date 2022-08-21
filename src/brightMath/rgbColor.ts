@@ -8,20 +8,12 @@ export default class RGBColor extends NullableBaseColor implements IBaseColor {
   public readonly red: bigint;
   public readonly green: bigint;
   public readonly blue: bigint;
-  public readonly bitDepth: number;
-  public readonly sourceColorBase: EColorSource;
-  public readonly maxValue: bigint;
   public constructor (bitDepth: number, red: bigint | null, green: bigint | null, blue: bigint | null) {
     const isNull = (red === null && green === null && blue === null);
     if (!isNull && (red === null || green === null || blue === null)) {
       throw new Error('RGBColor: All parameters must be provided or null.');
     }
     super(EColorSource.RGB, bitDepth, isNull);
-    /* these three lines should be in the super constructor */
-    this.bitDepth = bitDepth;
-    this.sourceColorBase = EColorSource.RGB;
-    this.maxValue = 2n ** BigInt(bitDepth) - 1n;
-    // end super constructor code
     this.red = red === null ? 0n : NullableBaseColor.boundValue(red, this.maxValue);
     this.green = green === null ? 0n : NullableBaseColor.boundValue(green, this.maxValue);
     this.blue = blue === null ? 0n : NullableBaseColor.boundValue(blue, this.maxValue);
@@ -65,7 +57,7 @@ export default class RGBColor extends NullableBaseColor implements IBaseColor {
     }
   }
 
-  public validate (): boolean {
+  public override validate (): boolean {
     return super.validate() &&
             (this.red >= 0n && this.red <= this.maxValue) &&
             (this.green >= 0n && this.green <= this.maxValue) &&

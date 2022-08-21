@@ -97,98 +97,13 @@ export default abstract class NullableBaseColor implements IBaseColor {
     return upperBounded;
   }
 
-  xor (other: NullableBaseColor): NullableBaseColor {
-    if (other === null || other === undefined) {
-      throw new Error('Other cannot be null');
-    }
-    if (this.sourceColorBase !== other.sourceColorBase) {
-      throw new Error('Cannot operate on different color bases without introducing errors');
-    }
-    if (this.bitDepth !== other.bitDepth) {
-      throw new Error('Bit depth mismatch');
-    }
-    if (this.sourceColorBase === EColorSource.CMYK) {
-      return this.xor(other as CMYKColor) as CMYKColor;
-    } else if (this.sourceColorBase === EColorSource.RGB) {
-      return this.xor(other as RGBColor) as RGBColor;
-    } else {
-      throw new Error('Unknown color base');
-    }
-  }
+  public abstract xor (other: NullableBaseColor): NullableBaseColor;
 
-  add (other: NullableBaseColor): NullableBaseColor {
-    if (other === null || other === undefined) {
-      throw new Error('Other cannot be null');
-    }
-    if (this.sourceColorBase !== other.sourceColorBase) {
-      throw new Error('Cannot operate on different color bases without introducing errors');
-    }
-    if (this.bitDepth !== other.bitDepth) {
-      throw new Error('Bit depth mismatch');
-    }
-    if (this.sourceColorBase === EColorSource.CMYK) {
-      return this.add(other as CMYKColor) as CMYKColor;
-    } else if (this.sourceColorBase === EColorSource.RGB) {
-      return this.add(other as RGBColor) as RGBColor;
-    } else {
-      throw new Error('Unknown color base');
-    }
-  }
+  public abstract add (other: NullableBaseColor): NullableBaseColor;
 
-  subtract (other: NullableBaseColor): NullableBaseColor {
-    if (other === null || other === undefined) {
-      throw new Error('Other cannot be null');
-    }
-    if (this.sourceColorBase !== other.sourceColorBase) {
-      throw new Error('Cannot operate on different color bases without introducing errors');
-    }
-    if (this.bitDepth !== other.bitDepth) {
-      throw new Error('Bit depth mismatch');
-    }
-    if (this.sourceColorBase === EColorSource.CMYK) {
-      return this.subtract(other as CMYKColor) as CMYKColor;
-    } else if (this.sourceColorBase === EColorSource.RGB) {
-      return this.subtract(other as RGBColor) as RGBColor;
-    } else {
-      throw new Error('Unknown color base');
-    }
-  }
+  public abstract subtract (other: NullableBaseColor): NullableBaseColor;
 
-  multiply (other: NullableBaseColor): NullableBaseColor {
-    if (other === null || other === undefined) {
-      throw new Error('Other cannot be null');
-    }
-    if (this.sourceColorBase !== other.sourceColorBase) {
-      throw new Error('Cannot operate on different color bases without introducing errors');
-    }
-    if (this.bitDepth !== other.bitDepth) {
-      throw new Error('Bit depth mismatch');
-    }
-    if (this.sourceColorBase === EColorSource.CMYK) {
-      return this.multiply(other as CMYKColor) as CMYKColor;
-    } else if (this.sourceColorBase === EColorSource.RGB) {
-      return this.multiply(other as RGBColor) as RGBColor;
-    } else {
-      throw new Error('Unknown color base');
-    }
-  }
+  public abstract multiply (other: NullableBaseColor): NullableBaseColor;
 
-  divide (other: NullableBaseColor): NullableBaseColor {
-    if (other === null || other === undefined) {
-      throw new Error('Other cannot be null');
-    }
-    if (this.sourceColorBase !== other.sourceColorBase) {
-      throw new Error('Cannot operate on different color bases without introducing errors');
-    }
-    if (this.bitDepth !== other.bitDepth) {
-      throw new Error('Bit depth mismatch');
-    }
-    if (this.sourceColorBase === EColorSource.CMYK) {
-      return this.divide(other as CMYKColor) as CMYKColor;
-    } else if (this.sourceColorBase === EColorSource.RGB) {
-      return this.divide(other as RGBColor) as RGBColor;
-    } else {
-      throw new Error('Unknown color base');
-    }
-  }
+  public abstract divide (other: NullableBaseColor): NullableBaseColor;
 }

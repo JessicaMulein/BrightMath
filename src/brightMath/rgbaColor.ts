@@ -6,34 +6,17 @@ import RGBColor from './rgbColor';
 import { getColorChannel } from './maps';
 
 export default class RGBAColor extends RGBColor implements IBaseColor {
-  public readonly red: bigint;
-  public readonly green: bigint;
-  public readonly blue: bigint;
   public readonly alpha: bigint;
-  public readonly bitDepth: number;
-  public readonly sourceColorBase: EColorSource;
-  public readonly maxValue: bigint;
   public constructor (bitDepth: number, red: bigint | null, green: bigint | null, blue: bigint | null, alpha: bigint | null) {
     const isNull = (red === null && green === null && blue === null && alpha === null);
     if (!isNull && (red === null || green === null || blue === null || alpha === null)) {
       throw new Error('RGBAColor: All parameters must be provided or null.');
     }
     super(bitDepth, red, green, blue);
-    /* these three lines should be in the super constructor */
-    this.bitDepth = bitDepth;
-    this.sourceColorBase = EColorSource.RGB;
-    this.maxValue = 2n ** BigInt(bitDepth) - 1n;
-    this.red = red === null ? 0n : NullableBaseColor.boundValue(red, this.maxValue);
-    this.green = green === null ? 0n : NullableBaseColor.boundValue(green, this.maxValue);
-    this.blue = blue === null ? 0n : NullableBaseColor.boundValue(blue, this.maxValue);
-    // end super constructor code
     this.alpha = alpha === null ? 0n : NullableBaseColor.boundValue(alpha, this.maxValue);
     if (!this.validate()) {
       throw new Error('RGBAColor: Invalid color');
     }
-    this.channelData[getColorChannel(EColorSource.RGBA, EColorChannel.Red)] = this.red;
-    this.channelData[getColorChannel(EColorSource.RGBA, EColorChannel.Green)] = this.green;
-    this.channelData[getColorChannel(EColorSource.RGBA, EColorChannel.Blue)] = this.blue;
     this.channelData[getColorChannel(EColorSource.RGBA, EColorChannel.Alpha)] = this.alpha;
     if (!this.validate()) {
       throw new Error('RGBAColor: Invalid color');
@@ -64,23 +47,12 @@ export default class RGBAColor extends RGBColor implements IBaseColor {
     return new RGBAColor(bitDepth, red, green, blue, newRGBAlpha);
   }
 
-  public toCMYKColor (): CMYKColor {
-    if (this.isNull) {
-      return new CMYKColor(this.bitDepth, null, null, null, null);
-    } else {
-      return CMYKColor.fromRGB(this.red, this.green, this.blue, this.bitDepth);
-    }
-  }
-
-  public validate (): boolean {
+  public override validate (): boolean {
     return super.validate() &&
-            (this.red >= 0n && this.red <= this.maxValue) &&
-            (this.green >= 0n && this.green <= this.maxValue) &&
-            (this.blue >= 0n && this.blue <= this.maxValue) &&
             (this.alpha >= 0n && this.alpha <= this.maxValue);
   }
 
-  public xor (other: NullableBaseColor): NullableBaseColor {
+  public override xor (other: NullableBaseColor): NullableBaseColor {
     if (other === null || other === undefined) {
       throw new Error('RGBAColor: Other cannot be null');
     }
@@ -98,7 +70,7 @@ export default class RGBAColor extends RGBColor implements IBaseColor {
     return new RGBAColor(this.bitDepth, xorRed, xorGreen, xorBlue, xorAlpha);
   }
 
-  public add (other: NullableBaseColor): NullableBaseColor {
+  public override add (other: NullableBaseColor): NullableBaseColor {
     if (other === null || other === undefined) {
       throw new Error('RGBAColor: Other cannot be null');
     }
@@ -116,7 +88,7 @@ export default class RGBAColor extends RGBColor implements IBaseColor {
     return new RGBAColor(this.bitDepth, addRed, addGreen, addBlue, addAlpha);
   }
 
-  public subtract (other: NullableBaseColor): NullableBaseColor {
+  public override subtract (other: NullableBaseColor): NullableBaseColor {
     if (other === null || other === undefined) {
       throw new Error('RGBAColor: Other cannot be null');
     }
@@ -134,7 +106,7 @@ export default class RGBAColor extends RGBColor implements IBaseColor {
     return new RGBAColor(this.bitDepth, subtractRed, subtractGreen, subtractBlue, subtractAlpha);
   }
 
-  public multiply (other: NullableBaseColor): NullableBaseColor {
+  public override multiply (other: NullableBaseColor): NullableBaseColor {
     if (other === null || other === undefined) {
       throw new Error('RGBAColor: Other cannot be null');
     }
@@ -152,7 +124,7 @@ export default class RGBAColor extends RGBColor implements IBaseColor {
     return new RGBAColor( this.bitDepth, multiplyRed, multiplyGreen, multiplyBlue, multiplyAlpha);
   }
 
-  public divide (other: NullableBaseColor): NullableBaseColor {
+  public override divide (other: NullableBaseColor): NullableBaseColor {
     if (other === null || other === undefined) {
       throw new Error('RGBAColor: Other cannot be null');
     }
