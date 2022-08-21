@@ -1,5 +1,6 @@
 import CMYKColor from './cmykColor';
 import { EColorSource } from './enumerations';
+import RGBAColor from './rgbaColor';
 import RGBColor from './rgbColor';
 
 export default class ApproximatedColorPair {
@@ -8,7 +9,7 @@ export default class ApproximatedColorPair {
   public readonly rgb: RGBColor;
   public readonly bitDepth: number;
 
-  public constructor (sourceColor: CMYKColor | RGBColor) {
+  public constructor (sourceColor: CMYKColor | RGBColor | RGBAColor) {
     if (sourceColor instanceof CMYKColor) {
       this.sourceColorBase = EColorSource.CMYK;
       this.cmyk = sourceColor;
