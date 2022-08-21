@@ -4,12 +4,13 @@
   "description": "Playing with color",
   "main": "dist/src/app.ts",
   "scripts": {
-    "start": "tsc && ng serve",
+    "start": "ng serve",
     "lint": "npx eslint . --ext .ts",
     "lint:fix": "npx eslint . --ext .ts --fix",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "tsc": "tsc --project tsconfig.json"
   },
   "repository": {
     "type": "git",
