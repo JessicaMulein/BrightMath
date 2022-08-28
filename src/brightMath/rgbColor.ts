@@ -7,51 +7,27 @@ import NotImplementedError from './notImplementedError';
 import { boundValue } from './bigMath';
 import { convertRGBtoCMYK } from './cmykConverters';
 import RGBAColor from './rgbaColor';
+import { RGBColorSpace } from './rgbColorSpace';
 
 export default class RGBColor extends NullableBaseColor implements IBaseColor, IRGBColor {
   public readonly red: bigint;
   public readonly green: bigint;
   public readonly blue: bigint;
-  public readonly colorSpace: ERGBColorSpace | null;
-  public readonly whitePoint: ELabWhitePoint | null;
-  public readonly gamma: number | null;
-  public readonly gammaFunction: ((f: number) => number) | null;
-  public readonly gammaInv: number | null;
-  public readonly gammaInvFunction: ((f: number) => number) | null;
-  public constructor (bitDepth: number, red: bigint | null, green: bigint | null, blue: bigint | null, colorSpace: ERGBColorSpace | null = null, whitePoint: ELabWhitePoint | null = null, gamma: number | null | ((f: number) => number) = null, gammaInv: number | ((f: number) => number) | null = null) {
+  public readonly rgbColorSpace: RGBColorSpace | null;
+  public constructor (bitDepth: number, red: bigint | null, green: bigint | null, blue: bigint | null, colorSpace: RGBColorSpace | null = null) {
     const isNull = (red === null && green === null && blue === null);
     if (!isNull && (red === null || green === null || blue === null)) {
       throw new Error('RGBColor: All parameters must be provided or null.');
     }
     super(EColorSpace.RGB, bitDepth, isNull);
-    this.colorSpace = colorSpace;
-    this.whitePoint = whitePoint;
+    this.rgbColorSpace = colorSpace;
     this.red = red === null ? 0n : boundValue(red, this.maxValue);
     this.green = green === null ? 0n : boundValue(green, this.maxValue);
     this.blue = blue === null ? 0n : boundValue(blue, this.maxValue);
     this.channelData[getColorChannelIndex(EColorSpace.RGB, EColorChannel.Red)] = this.red;
     this.channelData[getColorChannelIndex(EColorSpace.RGB, EColorChannel.Green)] = this.green;
     this.channelData[getColorChannelIndex(EColorSpace.RGB, EColorChannel.Blue)] = this.blue;
-    if (gamma === null) {
-      this.gamma = null;
-      this.gammaFunction = null;
-    } else if (gamma !== null && (gamma instanceof Function)) {
-      this.gamma = null;
-      this.gammaFunction = gamma;
-    } else {
-      this.gamma = gamma;
-      this.gammaFunction = null;
-    }
-    if (gammaInv === null) {
-      this.gammaInv = null;
-      this.gammaInvFunction = null;
-    } else if (gammaInv !== null && (gammaInv instanceof Function)) {
-      this.gammaInv = null;
-      this.gammaInvFunction = gammaInv;
-    } else {
-      this.gammaInv = gammaInv;
-      this.gammaInvFunction = null;
-    }
+
     if (!this.validate()) {
       throw new Error('RGBColor: Invalid color');
     }
