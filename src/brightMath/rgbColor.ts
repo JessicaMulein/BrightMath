@@ -1,27 +1,57 @@
 import NullableBaseColor from './nullableBaseColor';
 import CMYKColor from './cmykColor';
-import { EColorChannel, EColorSpace } from './enumerations';
+import { EColorChannel, EColorSpace, ELabWhitePoint, ERGBColorSpace } from './enumerations';
 import { IBaseColor, IRGBColor } from './interfaces';
 import { getColorChannelIndex } from './maps';
 import NotImplementedError from './notImplementedError';
 import { boundValue } from './bigMath';
+import { convertRGBtoCMYK } from './cmykConverters';
+import RGBAColor from './rgbaColor';
 
 export default class RGBColor extends NullableBaseColor implements IBaseColor, IRGBColor {
   public readonly red: bigint;
   public readonly green: bigint;
   public readonly blue: bigint;
-  public constructor (bitDepth: number, red: bigint | null, green: bigint | null, blue: bigint | null) {
+  public readonly colorSpace: ERGBColorSpace | null;
+  public readonly whitePoint: ELabWhitePoint | null;
+  public readonly gamma: number | null;
+  public readonly gammaFunction: ((f: number) => number) | null;
+  public readonly gammaInv: number | null;
+  public readonly gammaInvFunction: ((f: number) => number) | null;
+  public constructor (bitDepth: number, red: bigint | null, green: bigint | null, blue: bigint | null, colorSpace: ERGBColorSpace | null = null, whitePoint: ELabWhitePoint | null = null, gamma: number | null | ((f: number) => number) = null, gammaInv: number | ((f: number) => number) | null = null) {
     const isNull = (red === null && green === null && blue === null);
     if (!isNull && (red === null || green === null || blue === null)) {
       throw new Error('RGBColor: All parameters must be provided or null.');
     }
     super(EColorSpace.RGB, bitDepth, isNull);
+    this.colorSpace = colorSpace;
+    this.whitePoint = whitePoint;
     this.red = red === null ? 0n : boundValue(red, this.maxValue);
     this.green = green === null ? 0n : boundValue(green, this.maxValue);
     this.blue = blue === null ? 0n : boundValue(blue, this.maxValue);
     this.channelData[getColorChannelIndex(EColorSpace.RGB, EColorChannel.Red)] = this.red;
     this.channelData[getColorChannelIndex(EColorSpace.RGB, EColorChannel.Green)] = this.green;
     this.channelData[getColorChannelIndex(EColorSpace.RGB, EColorChannel.Blue)] = this.blue;
+    if (gamma === null) {
+      this.gamma = null;
+      this.gammaFunction = null;
+    } else if (gamma !== null && (gamma instanceof Function)) {
+      this.gamma = null;
+      this.gammaFunction = gamma;
+    } else {
+      this.gamma = gamma;
+      this.gammaFunction = null;
+    }
+    if (gammaInv === null) {
+      this.gammaInv = null;
+      this.gammaInvFunction = null;
+    } else if (gammaInv !== null && (gammaInv instanceof Function)) {
+      this.gammaInv = null;
+      this.gammaInvFunction = gammaInv;
+    } else {
+      this.gammaInv = gammaInv;
+      this.gammaInvFunction = null;
+    }
     if (!this.validate()) {
       throw new Error('RGBColor: Invalid color');
     }
@@ -30,7 +60,11 @@ export default class RGBColor extends NullableBaseColor implements IBaseColor, I
   public to: (other: EColorSpace) => NullableBaseColor = (other) => {
   {
       if (other === EColorSpace.CMYK) {
-        throw new NotImplementedError();
+        if (this.isNull) {
+          return new CMYKColor(this.bitDepth, null, null, null, null);
+        } else {
+          return convertRGBtoCMYK(this.red, this.green, this.blue, this.bitDepth);
+        }
       } else if (other === EColorSpace.HSV) {
         throw new NotImplementedError();
       } else if (other === EColorSpace.Lab) {
@@ -40,45 +74,13 @@ export default class RGBColor extends NullableBaseColor implements IBaseColor, I
       } else if (other === EColorSpace.xyY) {
       throw new NotImplementedError();
       } else if (other === EColorSpace.RGBA) {
-        throw new NotImplementedError();
+        return new RGBAColor(this.bitDepth, this.red, this.green, this.blue, 0n);
       } else if (other === EColorSpace.RGB) {
         return this;
       } else {
         throw new Error('RGBAColor.to: Unknown color space');
       }
     }}
-
-  public static makeRGBfromCMYK (cyan: bigint, magenta: bigint, yellow: bigint, black: bigint, bitDepth: number): RGBColor {
-    /*
-      CMYK to RGB conversion formula
-      The R,G,B values are given in the range of 0..255.
-
-      The red (R) color is calculated from the cyan (C) and black (K) colors:
-
-      R = 255 × (1-C) × (1-K)
-
-      The green color (G) is calculated from the magenta (M) and black (K) colors:
-
-      G = 255 × (1-M) × (1-K)
-
-      The blue color (B) is calculated from the yellow (Y) and black (K) colors:
-
-      B = 255 × (1-Y) × (1-K)
-    */
-    const bitMax = 2n ** BigInt(bitDepth) - 1n;
-    const red = bitMax * (1n - cyan) * (1n - black);
-    const green = bitMax * (1n - magenta) * (1n - black);
-    const blue = bitMax * (1n - yellow) * (1n - black);
-    return new RGBColor(bitDepth, red, green, blue);
-  }
-
-  public toCMYKColor (): CMYKColor {
-    if (this.isNull) {
-      return new CMYKColor(this.bitDepth, null, null, null, null);
-    } else {
-      return CMYKColor.fromRGB(this.red, this.green, this.blue, this.bitDepth);
-    }
-  }
 
   public override validate (): boolean {
     return super.validate() &&

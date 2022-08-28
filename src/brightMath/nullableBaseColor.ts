@@ -4,7 +4,6 @@ import { EColorChannel, EColorSpace } from './enumerations';
 import RGBColor from './rgbColor';
 import RGBAColor from './rgbaColor';
 import { getColorChannelIndex, getColorChannelCount, getColorChannelType } from './maps';
-import rgb from './rgb';
 import NotImplementedError from './notImplementedError';
 
 export default abstract class NullableBaseColor implements IBaseColor {
@@ -146,12 +145,6 @@ export default abstract class NullableBaseColor implements IBaseColor {
     } else {
       throw new Error('Invalid color base');
     }
-  }
-
-  protected static boundValue (value: bigint, maxValue: bigint): bigint {
-    const lowerBounded = 0n > value ? 0n : value;
-    const upperBounded = maxValue < lowerBounded ? maxValue : lowerBounded;
-    return upperBounded;
   }
 
   public abstract xor (other: NullableBaseColor): NullableBaseColor;

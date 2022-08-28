@@ -1,17 +1,38 @@
 import NullableBaseColor from './nullableBaseColor';
-import CMYKColor from './cmykColor';
-import { EColorChannel, EColorSpace } from './enumerations';
+import { EColorChannel, EColorSpace, ELabWhitePoint, ERGBColorSpace } from './enumerations';
 import { IBaseColor } from './interfaces';
 import RGBColor from './rgbColor';
 import { getColorChannelIndex } from './maps';
 import NotImplementedError from './notImplementedError';
 import { boundValue } from './bigMath';
+import { convertRGBtoCMYK } from './cmykConverters';
+import CMYKColor from './cmykColor';
 
 export default class RGBAColor extends RGBColor implements IBaseColor {
+  public readonly alpha: bigint;
+  public constructor (bitDepth: number, red: bigint | null, green: bigint | null, blue: bigint | null, alpha: bigint | null, colorSpace: ERGBColorSpace | null = null, whitePoint: ELabWhitePoint | null = null, gamma: number | null | ((f: number) => number) = null, gammaInv: number | ((f: number) => number) | null = null) {
+    const isNull = (red === null && green === null && blue === null && alpha === null);
+    if (!isNull && (red === null || green === null || blue === null || alpha === null)) {
+      throw new Error('RGBAColor: All parameters must be provided or null.');
+    }
+    super(bitDepth, red, green, blue, colorSpace, whitePoint, gamma, gammaInv);
+    this.alpha = alpha === null ? 0n : boundValue(alpha, this.maxValue);
+    if (!this.validate()) {
+      throw new Error('RGBAColor: Invalid color');
+    }
+    this.channelData[getColorChannelIndex(EColorSpace.RGBA, EColorChannel.Alpha)] = this.alpha;
+    if (!this.validate()) {
+      throw new Error('RGBAColor: Invalid color');
+    }
+  }
+
   public override to: (other: EColorSpace) => NullableBaseColor = (other) => {
     {
         if (other === EColorSpace.CMYK) {
-          throw new NotImplementedError();
+          if (this.isNull) {
+            return new CMYKColor(this.bitDepth, null, null, null, null);
+          }
+          return convertRGBtoCMYK(this.red, this.green, this.blue, this.bitDepth);
         } else if (other === EColorSpace.HSV) {
           throw new NotImplementedError();
         } else if (other === EColorSpace.Lab) {
@@ -23,51 +44,11 @@ export default class RGBAColor extends RGBColor implements IBaseColor {
         } else if (other === EColorSpace.RGBA) {
           return this;
         } else if (other === EColorSpace.RGB) {
-          throw new NotImplementedError();
+          return new RGBColor(this.bitDepth, this.red, this.green, this.blue);
         } else {
           throw new Error('RGBAColor.to: Unknown color space');
         }
       }}
-  public readonly alpha: bigint;
-  public constructor (bitDepth: number, red: bigint | null, green: bigint | null, blue: bigint | null, alpha: bigint | null) {
-    const isNull = (red === null && green === null && blue === null && alpha === null);
-    if (!isNull && (red === null || green === null || blue === null || alpha === null)) {
-      throw new Error('RGBAColor: All parameters must be provided or null.');
-    }
-    super(bitDepth, red, green, blue);
-    this.alpha = alpha === null ? 0n : boundValue(alpha, this.maxValue);
-    if (!this.validate()) {
-      throw new Error('RGBAColor: Invalid color');
-    }
-    this.channelData[getColorChannelIndex(EColorSpace.RGBA, EColorChannel.Alpha)] = this.alpha;
-    if (!this.validate()) {
-      throw new Error('RGBAColor: Invalid color');
-    }
-  }
-
-  public static makeRGBAfromCMYK (cyan: bigint, magenta: bigint, yellow: bigint, black: bigint, newRGBAlpha: bigint, bitDepth: number): RGBAColor {
-    /*
-      CMYK to RGB conversion formula
-      The R,G,B values are given in the range of 0..255.
-
-      The red (R) color is calculated from the cyan (C) and black (K) colors:
-
-      R = 255 × (1-C) × (1-K)
-
-      The green color (G) is calculated from the magenta (M) and black (K) colors:
-
-      G = 255 × (1-M) × (1-K)
-
-      The blue color (B) is calculated from the yellow (Y) and black (K) colors:
-
-      B = 255 × (1-Y) × (1-K)
-    */
-    const bitMax = 2n ** BigInt(bitDepth) - 1n;
-    const red = bitMax * (1n - cyan) * (1n - black);
-    const green = bitMax * (1n - magenta) * (1n - black);
-    const blue = bitMax * (1n - yellow) * (1n - black);
-    return new RGBAColor(bitDepth, red, green, blue, newRGBAlpha);
-  }
 
   public override validate (): boolean {
     return super.validate() &&

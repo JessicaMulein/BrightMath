@@ -12,6 +12,7 @@
 // -------
 
 import XYZ from "./XYZ";
+import { Matrix, LuDecomposition, inverse } from "ml-matrix";
 
 // xyY prototype
 // -------------
@@ -40,6 +41,25 @@ class xyY{
 // Returns a human readable string serialization of the color.
   toString() {
     return `x=${this.x}, y=${this.y}, Y=${this.Y}`;
+  }
+
+  public static matrixOp(red: xyY, green: xyY, blue: xyY, white: XYZ): any {
+    const bxyz: Matrix = new Matrix([
+      [red.x         ,     green.x          ,     blue.x],
+      [red.y,                green.y,               blue.y],
+      [1 - red.x - red.y, 1 - green.x - green.y, 1 - blue.x - blue.y]
+    ]);
+    // calculate LU decomposition of xyz base
+    const bxyzLU = new LuDecomposition(bxyz);
+    const w = new Matrix([[ white.X, white.Y, white.Z ]]);
+    // get the needed scales or the columns of bxyz (sum of the columns of the base must be the white point)
+    const wSolved = bxyzLU.solve(w); // calculate in place
+    // scale bxyz to get the wanted XYZ base (sum of columns is white point)
+    const wMulResult = bxyz.mul(new Matrix([wSolved.diag()]));
+    const base = wMulResult.to1DArray();
+    const baseInv = inverse((bxyzLU);
+    this.base = bxyz.array;
+    this.baseInv = (lu(bxyz)).getInverse().array;
   }
 }
 

@@ -31,3 +31,13 @@ export function bigMin(maxValue: bigint, ...args: bigint[]): bigint
   }
   return min;
 }
+
+export function fractionToScaledBigInt(percent: number, maxValue: bigint): bigint
+{
+  return BigInt(percent) * maxValue;
+}
+
+export function scaledBigIntToFraction(value: bigint, maxValue: bigint): number
+{
+  return Number(value) / Number(maxValue);
+}
