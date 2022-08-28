@@ -1,0 +1,3 @@
+[submodule "resources/color-space-ts"]
+	path = resources/color-space-ts
+	url = https://github.com/FreddieMercurial/color-space-ts.git
