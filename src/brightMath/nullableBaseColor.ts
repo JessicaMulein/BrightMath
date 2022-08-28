@@ -1,13 +1,14 @@
 import CMYKColor from './cmykColor';
-import IBaseColor from './iBaseColor';
-import { EColorSource } from './enumerations';
+import { IBaseColor, IHSVColor, IHSVShortColor, IRGBColor, IRGBAColor, IRGBShortColor, IRGBAShortColor, ICMYKColor, ICMYKShortColor, isCMYKColor, isCMYKShortColor, isHSVColor, isHSVShortColor, isRGBAColor, isRGBAShortColor, isRGBColor, isRGBShortColor, IColorDTO } from './interfaces';
+import { EColorChannel, EColorSpace } from './enumerations';
 import RGBColor from './rgbColor';
-import BaseColorDataTransferObject from './baseColorDTO';
-import { colorChannelCountMap } from './maps';
 import RGBAColor from './rgbaColor';
+import { getColorChannelIndex, getColorChannelCount, getColorChannelType } from './maps';
+import rgb from './rgb';
+import NotImplementedError from './notImplementedError';
 
 export default abstract class NullableBaseColor implements IBaseColor {
-  public readonly sourceColorBase: EColorSource;
+  public readonly sourceColorBase: EColorSpace;
   public readonly channelData: Array<bigint>;
   public readonly bitDepth: number;
   public readonly maxValue: bigint;
@@ -21,7 +22,7 @@ export default abstract class NullableBaseColor implements IBaseColor {
     return (this.bitDepth === 8);
   }
 
-  public constructor (sourceColorBase: EColorSource, bitDepth: number, isNull: boolean) {
+  public constructor (sourceColorBase: EColorSpace, bitDepth: number, isNull: boolean) {
     this.isNull = isNull;
     this.sourceColorBase = sourceColorBase;
     this.maxValue = 2n ** BigInt(bitDepth) - 1n;
@@ -31,61 +32,117 @@ export default abstract class NullableBaseColor implements IBaseColor {
     }
     
     this.channelData = new Array<bigint>();
-    const channelCount = isNull ? 0 : colorChannelCountMap.get(sourceColorBase);
-    if (channelCount === undefined) {
-        throw new Error('Unknown color base');
-    }
-    for (let i = 0; i < channelCount; i++) {
+    for (let i = 0; i < this.getChannelCount(); i++) {
         this.channelData.push(0n);
     }
   }
+  public abstract to: (other: EColorSpace) => NullableBaseColor;
+  public getChannelData(channel: EColorChannel): bigint
+  {
+    return this.channelData[getColorChannelIndex(this.sourceColorBase, channel)];
+  }
+  public getChannelType(channelIndex: number): EColorChannel
+  {
+    return getColorChannelType(this.sourceColorBase, channelIndex);
+  }
+  public getChannelIndex(channel: EColorChannel): number {
+    return getColorChannelIndex(this.sourceColorBase, channel);
+  }
+  public getChannelCount(): number {
+    return getColorChannelCount(this.sourceColorBase);
+  }
 
-  public static fromObject (value: BaseColorDataTransferObject): RGBColor | RGBAColor | CMYKColor {
-    if (value.red !== undefined && value.green !== undefined && value.blue !== undefined && value.alpha === undefined) {
-        return new RGBColor(value.bitDepth, value.red, value.green, value.blue);
-    } else if (value.red !== undefined && value.green !== undefined && value.blue !== undefined && value.alpha !== undefined) {
-        return new RGBAColor(value.bitDepth, value.red, value.green, value.blue, value.alpha);
-    } else if (value.cyan !== undefined && value.magenta !== undefined && value.yellow !== undefined && value.black !== undefined) {
-        return new CMYKColor(value.bitDepth, value.cyan, value.magenta, value.yellow, value.black);
+  public static fromObject (value: IRGBColor | IRGBShortColor | IRGBAColor | IRGBAShortColor | ICMYKColor | ICMYKShortColor | IHSVColor | IHSVShortColor): RGBColor | RGBAColor | CMYKColor {
+    if (isRGBAColor(value)) {
+      const rgbaValue = value as IRGBAColor;
+      return new RGBAColor(value.bitDepth, rgbaValue.red, rgbaValue.green, rgbaValue.blue, rgbaValue.alpha);
+    } else if (isRGBColor(value)) {
+      const rgbValue = value as IRGBColor;
+      return new RGBColor(value.bitDepth, rgbValue.red, rgbValue.green, rgbValue.blue);
+    } else if (isRGBAShortColor(value)) {
+      const rgbaValue = value as IRGBAShortColor;
+      return new RGBAColor(value.bitDepth, rgbaValue.r, rgbaValue.g, rgbaValue.b, rgbaValue.a);
+    } else if (isRGBShortColor(value)) {
+      const rgbValue = value as IRGBShortColor;
+      return new RGBColor(value.bitDepth, rgbValue.r, rgbValue.g, rgbValue.b);
+    } else if (isCMYKColor(value)) {
+      const cmykValue = value as ICMYKColor;
+      return new CMYKColor(value.bitDepth, cmykValue.cyan, cmykValue.magenta, cmykValue.yellow, cmykValue.black);
+    } else if (isCMYKShortColor(value)) {
+      const cmykValue = value as ICMYKShortColor;
+      return new CMYKColor(value.bitDepth, cmykValue.c, cmykValue.m, cmykValue.y, cmykValue.k);
+    } else if (isHSVColor(value)) {
+      throw new NotImplementedError();
+      //const hsvValue = value as IHSVColor;
+      //return new HSVColor(value.bitDepth, hsvValue.hue, hsvValue.saturation, hsvValue.value);
+    } else if (isHSVShortColor(value)) {
+      throw new NotImplementedError();
+      //const hsvValue = value as IHSVShortColor;
+      //return new HSVColor(value.bitDepth, hsvValue.h, hsvValue.s, hsvValue.v);
     } else {
-        throw new Error('Invalid color base');
+      throw new Error('Invalid color type');
     }
   }
 
-  public toObject (): BaseColorDataTransferObject {
+  public toObject (short: boolean): IColorDTO {
     if (this instanceof RGBColor) {
-      return new BaseColorDataTransferObject(
-        this.bitDepth,
-        this.red,
-        this.green,
-        this.blue,
-        undefined /* cyan */,
-        undefined /* magenta */,
-        undefined /* yellow */,
-        undefined /* black */,
-        undefined /* alpha */);
+      if (short) {
+        return {
+          bitDepth: this.bitDepth,
+          sourceColorBase: EColorSpace.RGB,
+          r: this.red,
+          g: this.green,
+          b: this.blue,
+        } as IRGBShortColor;
+      } else {
+        return {
+          bitDepth: this.bitDepth,
+          sourceColorBase: EColorSpace.RGB,
+          red: this.red,
+          green: this.green,
+          blue: this.blue,
+        } as IRGBColor;
+    }
     } else if (this instanceof RGBAColor) {
-      return new BaseColorDataTransferObject(
-        this.bitDepth,
-        this.red,
-        this.green,
-        this.blue,
-        undefined /* cyan */,
-        undefined /* magenta */,
-        undefined /* yellow */,
-        undefined /* black */,
-        this.alpha);
+      if (short) {
+        return {
+          bitDepth: this.bitDepth,
+          sourceColorBase: EColorSpace.RGB,
+          r: this.red,
+          g: this.green,
+          b: this.blue,
+          a: this.alpha,
+        } as IRGBAShortColor;
+      } else {
+      return {
+        bitDepth: this.bitDepth,
+        sourceColorBase: EColorSpace.RGB,
+        red: this.red,
+        green: this.green,
+        blue: this.blue,
+        alpha: this.alpha,
+      } as IRGBAColor;
+    }
     } else if (this instanceof CMYKColor) {
-      return new BaseColorDataTransferObject(
-        this.bitDepth,
-        undefined /* red */,
-        undefined /* green */,
-        undefined /* blue */,
-        this.cyan,
-        this.magenta,
-        this.yellow,
-        this.black,
-        undefined /* alpha */);
+      if (short) {
+        return {
+          bitDepth: this.bitDepth,
+          sourceColorBase: EColorSpace.CMYK,
+          c: this.cyan,
+          m: this.magenta,
+          y: this.yellow,
+          k: this.black,
+        } as ICMYKShortColor;
+      } else {
+      return {
+        bitDepth: this.bitDepth,
+        sourceColorBase: EColorSpace.CMYK,
+        cyan: this.cyan,
+        magenta: this.magenta,
+        yellow: this.yellow,
+        black: this.black,
+      } as ICMYKColor;
+    }
     } else {
       throw new Error('Invalid color base');
     }

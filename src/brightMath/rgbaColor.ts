@@ -1,11 +1,33 @@
 import NullableBaseColor from './nullableBaseColor';
 import CMYKColor from './cmykColor';
-import { EColorChannel, EColorSource } from './enumerations';
-import IBaseColor from './iBaseColor';
+import { EColorChannel, EColorSpace } from './enumerations';
+import { IBaseColor } from './interfaces';
 import RGBColor from './rgbColor';
-import { getColorChannel } from './maps';
+import { getColorChannelIndex } from './maps';
+import NotImplementedError from './notImplementedError';
+import { boundValue } from './bigMath';
 
 export default class RGBAColor extends RGBColor implements IBaseColor {
+  public override to: (other: EColorSpace) => NullableBaseColor = (other) => {
+    {
+        if (other === EColorSpace.CMYK) {
+          throw new NotImplementedError();
+        } else if (other === EColorSpace.HSV) {
+          throw new NotImplementedError();
+        } else if (other === EColorSpace.Lab) {
+        throw new NotImplementedError();
+        } else if (other === EColorSpace.XYZ) {
+        throw new NotImplementedError();
+        } else if (other === EColorSpace.xyY) {
+        throw new NotImplementedError();
+        } else if (other === EColorSpace.RGBA) {
+          return this;
+        } else if (other === EColorSpace.RGB) {
+          throw new NotImplementedError();
+        } else {
+          throw new Error('RGBAColor.to: Unknown color space');
+        }
+      }}
   public readonly alpha: bigint;
   public constructor (bitDepth: number, red: bigint | null, green: bigint | null, blue: bigint | null, alpha: bigint | null) {
     const isNull = (red === null && green === null && blue === null && alpha === null);
@@ -13,11 +35,11 @@ export default class RGBAColor extends RGBColor implements IBaseColor {
       throw new Error('RGBAColor: All parameters must be provided or null.');
     }
     super(bitDepth, red, green, blue);
-    this.alpha = alpha === null ? 0n : NullableBaseColor.boundValue(alpha, this.maxValue);
+    this.alpha = alpha === null ? 0n : boundValue(alpha, this.maxValue);
     if (!this.validate()) {
       throw new Error('RGBAColor: Invalid color');
     }
-    this.channelData[getColorChannel(EColorSource.RGBA, EColorChannel.Alpha)] = this.alpha;
+    this.channelData[getColorChannelIndex(EColorSpace.RGBA, EColorChannel.Alpha)] = this.alpha;
     if (!this.validate()) {
       throw new Error('RGBAColor: Invalid color');
     }

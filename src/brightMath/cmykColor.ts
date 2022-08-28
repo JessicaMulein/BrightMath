@@ -1,9 +1,10 @@
 import NullableBaseColor from './nullableBaseColor';
-import { EColorSource } from './enumerations';
-import IBaseColor from './iBaseColor';
+import { EColorSpace } from './enumerations';
+import { IBaseColor } from './interfaces';
 import RGBColor from './rgbColor';
 import RGBAColor from './rgbaColor';
-import bigMax from './bigmax';
+import NotImplementedError from './notImplementedError';
+import { bigMax, boundValue } from './bigMath';
 
 export default class CMYKColor extends NullableBaseColor implements IBaseColor {
   public readonly cyan: bigint;
@@ -15,15 +16,36 @@ export default class CMYKColor extends NullableBaseColor implements IBaseColor {
     if (!isNull && (cyan === null || magenta === null || yellow === null || black === null)) {
       throw new Error('CMYKColor: All parameters must be provided or null.');
     }
-    super(EColorSource.CMYK, bitDepth, isNull);
-    this.cyan = cyan === null ? 0n : NullableBaseColor.boundValue(cyan, this.maxValue);
-    this.magenta = magenta === null ? 0n : NullableBaseColor.boundValue(magenta, this.maxValue);
-    this.yellow = yellow === null ? 0n : NullableBaseColor.boundValue(yellow, this.maxValue);
-    this.black = black === null ? 0n : NullableBaseColor.boundValue(black, this.maxValue);
+    super(EColorSpace.CMYK, bitDepth, isNull);
+    this.cyan = cyan === null ? 0n : boundValue(cyan, this.maxValue);
+    this.magenta = magenta === null ? 0n : boundValue(magenta, this.maxValue);
+    this.yellow = yellow === null ? 0n : boundValue(yellow, this.maxValue);
+    this.black = black === null ? 0n : boundValue(black, this.maxValue);
     if (!this.validate()) {
       throw new Error('CMYKColor: Invalid color');
     }
   }
+
+  public to: (other: EColorSpace) => NullableBaseColor = (other) => {
+    {
+        if (other === EColorSpace.CMYK) {
+          return this;
+        } else if (other === EColorSpace.HSV) {
+          throw new NotImplementedError();
+        } else if (other === EColorSpace.Lab) {
+        throw new NotImplementedError();
+        } else if (other === EColorSpace.XYZ) {
+        throw new NotImplementedError();
+        } else if (other === EColorSpace.xyY) {
+        throw new NotImplementedError();
+        } else if (other === EColorSpace.RGBA) {
+          throw new NotImplementedError();
+        } else if (other === EColorSpace.RGB) {
+          throw new NotImplementedError();
+        } else {
+          throw new Error('RGBAColor.to: Unknown color space');
+        }
+      }}
 
   public static fromRGB (red: bigint, green: bigint, blue: bigint, bitDepth: number): CMYKColor {
     /*

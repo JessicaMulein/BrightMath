@@ -1,0 +1,4 @@
+{
+    "FSharp.suggestGitignore": false,
+    "jest.jestCommandLine": "ng test"
+}

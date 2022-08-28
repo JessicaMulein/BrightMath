@@ -1,10 +1,12 @@
 import NullableBaseColor from './nullableBaseColor';
 import CMYKColor from './cmykColor';
-import { EColorChannel, EColorSource } from './enumerations';
-import IBaseColor from './iBaseColor';
-import { getColorChannel } from './maps';
+import { EColorChannel, EColorSpace } from './enumerations';
+import { IBaseColor, IRGBColor } from './interfaces';
+import { getColorChannelIndex } from './maps';
+import NotImplementedError from './notImplementedError';
+import { boundValue } from './bigMath';
 
-export default class RGBColor extends NullableBaseColor implements IBaseColor {
+export default class RGBColor extends NullableBaseColor implements IBaseColor, IRGBColor {
   public readonly red: bigint;
   public readonly green: bigint;
   public readonly blue: bigint;
@@ -13,17 +15,38 @@ export default class RGBColor extends NullableBaseColor implements IBaseColor {
     if (!isNull && (red === null || green === null || blue === null)) {
       throw new Error('RGBColor: All parameters must be provided or null.');
     }
-    super(EColorSource.RGB, bitDepth, isNull);
-    this.red = red === null ? 0n : NullableBaseColor.boundValue(red, this.maxValue);
-    this.green = green === null ? 0n : NullableBaseColor.boundValue(green, this.maxValue);
-    this.blue = blue === null ? 0n : NullableBaseColor.boundValue(blue, this.maxValue);
-    this.channelData[getColorChannel(EColorSource.RGB, EColorChannel.Red)] = this.red;
-    this.channelData[getColorChannel(EColorSource.RGB, EColorChannel.Green)] = this.green;
-    this.channelData[getColorChannel(EColorSource.RGB, EColorChannel.Blue)] = this.blue;
+    super(EColorSpace.RGB, bitDepth, isNull);
+    this.red = red === null ? 0n : boundValue(red, this.maxValue);
+    this.green = green === null ? 0n : boundValue(green, this.maxValue);
+    this.blue = blue === null ? 0n : boundValue(blue, this.maxValue);
+    this.channelData[getColorChannelIndex(EColorSpace.RGB, EColorChannel.Red)] = this.red;
+    this.channelData[getColorChannelIndex(EColorSpace.RGB, EColorChannel.Green)] = this.green;
+    this.channelData[getColorChannelIndex(EColorSpace.RGB, EColorChannel.Blue)] = this.blue;
     if (!this.validate()) {
       throw new Error('RGBColor: Invalid color');
     }
   }
+
+  public to: (other: EColorSpace) => NullableBaseColor = (other) => {
+  {
+      if (other === EColorSpace.CMYK) {
+        throw new NotImplementedError();
+      } else if (other === EColorSpace.HSV) {
+        throw new NotImplementedError();
+      } else if (other === EColorSpace.Lab) {
+      throw new NotImplementedError();
+      } else if (other === EColorSpace.XYZ) {
+      throw new NotImplementedError();
+      } else if (other === EColorSpace.xyY) {
+      throw new NotImplementedError();
+      } else if (other === EColorSpace.RGBA) {
+        throw new NotImplementedError();
+      } else if (other === EColorSpace.RGB) {
+        return this;
+      } else {
+        throw new Error('RGBAColor.to: Unknown color space');
+      }
+    }}
 
   public static makeRGBfromCMYK (cyan: bigint, magenta: bigint, yellow: bigint, black: bigint, bitDepth: number): RGBColor {
     /*
