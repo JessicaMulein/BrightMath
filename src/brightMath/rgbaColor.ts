@@ -1,5 +1,5 @@
 import NullableBaseColor from './nullableBaseColor';
-import { EColorChannel, EColorSpace, ELabWhitePoint, ERGBColorSpace } from './enumerations';
+import { EColorChannel, EColorSpace } from './enumerations';
 import { IBaseColor } from './interfaces';
 import RGBColor from './rgbColor';
 import { getColorChannelIndex } from './maps';
@@ -7,15 +7,16 @@ import NotImplementedError from './notImplementedError';
 import { boundValue } from './bigMath';
 import { convertRGBtoCMYK } from './cmykConverters';
 import CMYKColor from './cmykColor';
+import { RGBColorSpace } from './rgbColorSpace';
 
 export default class RGBAColor extends RGBColor implements IBaseColor {
   public readonly alpha: bigint;
-  public constructor (bitDepth: number, red: bigint | null, green: bigint | null, blue: bigint | null, alpha: bigint | null, colorSpace: ERGBColorSpace | null = null, whitePoint: ELabWhitePoint | null = null, gamma: number | null | ((f: number) => number) = null, gammaInv: number | ((f: number) => number) | null = null) {
+  public constructor (bitDepth: number, red: bigint | null, green: bigint | null, blue: bigint | null, alpha: bigint | null, colorSpace: RGBColorSpace | null = null) {
     const isNull = (red === null && green === null && blue === null && alpha === null);
     if (!isNull && (red === null || green === null || blue === null || alpha === null)) {
       throw new Error('RGBAColor: All parameters must be provided or null.');
     }
-    super(bitDepth, red, green, blue, colorSpace, whitePoint, gamma, gammaInv);
+    super(bitDepth, red, green, blue, colorSpace);
     this.alpha = alpha === null ? 0n : boundValue(alpha, this.maxValue);
     if (!this.validate()) {
       throw new Error('RGBAColor: Invalid color');

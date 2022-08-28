@@ -8,7 +8,7 @@
  */
 // Imports / Shortcuts
 // -------------------
-
+import { Matrix } from "mathjs";
 
 import O from "ut1l/create/object";
 
@@ -33,7 +33,7 @@ const {
 
 const lazyInitRgbBase = function() {
   // create xyz base (luminance is unknown => need to multiply each column by a scalar)
-  let bxyz = M([
+  let byxz: Matrix = new Matrix(
     this.red.x         ,     this.green.x           ,     this.blue.x,
     this.red.y,                this.green.y,               this.blue.y,
     1 - this.red.x - this.red.y, 1 - this.green.x - this.green.y, 1 - this.blue.x - this.blue.y
