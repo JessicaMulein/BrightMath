@@ -8,35 +8,22 @@ import NotImplementedError from './notImplementedError';
 
 export default abstract class NullableBaseColor implements IBaseColor {
   public readonly sourceColorBase: EColorSpace;
-  public readonly channelData: Array<bigint>;
-  public readonly bitDepth: number;
-  public readonly maxValue: bigint;
+  public readonly channelData: Array<number>;
   public readonly isNull: boolean;
   public validate (): boolean {
-    return this.validateBitDepth();
+    return true;
   }
 
-  private validateBitDepth (): boolean {
-    // currently only 8 bit/256 color depth is supported
-    return (this.bitDepth === 8);
-  }
-
-  public constructor (sourceColorBase: EColorSpace, bitDepth: number, isNull: boolean) {
+  public constructor (sourceColorBase: EColorSpace, isNull: boolean) {
     this.isNull = isNull;
     this.sourceColorBase = sourceColorBase;
-    this.maxValue = 2n ** BigInt(bitDepth) - 1n;
-    this.bitDepth = bitDepth;
-    if (!this.validateBitDepth()) {
-      throw new Error('Invalid bit depth');
-    }
-    
-    this.channelData = new Array<bigint>();
+    this.channelData = new Array<number>();
     for (let i = 0; i < this.getChannelCount(); i++) {
-        this.channelData.push(0n);
+        this.channelData.push(0.0);
     }
   }
   public abstract to: (other: EColorSpace) => NullableBaseColor;
-  public getChannelData(channel: EColorChannel): bigint
+  public getChannelData(channel: EColorChannel): number
   {
     return this.channelData[getColorChannelIndex(this.sourceColorBase, channel)];
   }
@@ -54,22 +41,22 @@ export default abstract class NullableBaseColor implements IBaseColor {
   public static fromObject (value: IRGBColor | IRGBShortColor | IRGBAColor | IRGBAShortColor | ICMYKColor | ICMYKShortColor | IHSVColor | IHSVShortColor): RGBColor | RGBAColor | CMYKColor {
     if (isRGBAColor(value)) {
       const rgbaValue = value as IRGBAColor;
-      return new RGBAColor(value.bitDepth, rgbaValue.red, rgbaValue.green, rgbaValue.blue, rgbaValue.alpha);
+      return new RGBAColor(rgbaValue.red, rgbaValue.green, rgbaValue.blue, rgbaValue.alpha);
     } else if (isRGBColor(value)) {
       const rgbValue = value as IRGBColor;
-      return new RGBColor(value.bitDepth, rgbValue.red, rgbValue.green, rgbValue.blue);
+      return new RGBColor(rgbValue.red, rgbValue.green, rgbValue.blue);
     } else if (isRGBAShortColor(value)) {
       const rgbaValue = value as IRGBAShortColor;
-      return new RGBAColor(value.bitDepth, rgbaValue.r, rgbaValue.g, rgbaValue.b, rgbaValue.a);
+      return new RGBAColor(rgbaValue.r, rgbaValue.g, rgbaValue.b, rgbaValue.a);
     } else if (isRGBShortColor(value)) {
       const rgbValue = value as IRGBShortColor;
-      return new RGBColor(value.bitDepth, rgbValue.r, rgbValue.g, rgbValue.b);
+      return new RGBColor(rgbValue.r, rgbValue.g, rgbValue.b);
     } else if (isCMYKColor(value)) {
       const cmykValue = value as ICMYKColor;
-      return new CMYKColor(value.bitDepth, cmykValue.cyan, cmykValue.magenta, cmykValue.yellow, cmykValue.black);
+      return new CMYKColor(cmykValue.cyan, cmykValue.magenta, cmykValue.yellow, cmykValue.black);
     } else if (isCMYKShortColor(value)) {
       const cmykValue = value as ICMYKShortColor;
-      return new CMYKColor(value.bitDepth, cmykValue.c, cmykValue.m, cmykValue.y, cmykValue.k);
+      return new CMYKColor(cmykValue.c, cmykValue.m, cmykValue.y, cmykValue.k);
     } else if (isHSVColor(value)) {
       throw new NotImplementedError();
       //const hsvValue = value as IHSVColor;
@@ -87,7 +74,6 @@ export default abstract class NullableBaseColor implements IBaseColor {
     if (this instanceof RGBColor) {
       if (short) {
         return {
-          bitDepth: this.bitDepth,
           sourceColorBase: EColorSpace.RGB,
           r: this.red,
           g: this.green,
@@ -95,7 +81,6 @@ export default abstract class NullableBaseColor implements IBaseColor {
         } as IRGBShortColor;
       } else {
         return {
-          bitDepth: this.bitDepth,
           sourceColorBase: EColorSpace.RGB,
           red: this.red,
           green: this.green,
@@ -105,7 +90,6 @@ export default abstract class NullableBaseColor implements IBaseColor {
     } else if (this instanceof RGBAColor) {
       if (short) {
         return {
-          bitDepth: this.bitDepth,
           sourceColorBase: EColorSpace.RGB,
           r: this.red,
           g: this.green,
@@ -114,7 +98,6 @@ export default abstract class NullableBaseColor implements IBaseColor {
         } as IRGBAShortColor;
       } else {
       return {
-        bitDepth: this.bitDepth,
         sourceColorBase: EColorSpace.RGB,
         red: this.red,
         green: this.green,
@@ -125,7 +108,6 @@ export default abstract class NullableBaseColor implements IBaseColor {
     } else if (this instanceof CMYKColor) {
       if (short) {
         return {
-          bitDepth: this.bitDepth,
           sourceColorBase: EColorSpace.CMYK,
           c: this.cyan,
           m: this.magenta,
@@ -134,7 +116,6 @@ export default abstract class NullableBaseColor implements IBaseColor {
         } as ICMYKShortColor;
       } else {
       return {
-        bitDepth: this.bitDepth,
         sourceColorBase: EColorSpace.CMYK,
         cyan: this.cyan,
         magenta: this.magenta,

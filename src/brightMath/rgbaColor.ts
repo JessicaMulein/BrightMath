@@ -10,14 +10,14 @@ import CMYKColor from './cmykColor';
 import { RGBColorSpace } from './rgbColorSpace';
 
 export default class RGBAColor extends RGBColor implements IBaseColor {
-  public readonly alpha: bigint;
-  public constructor (bitDepth: number, red: bigint | null, green: bigint | null, blue: bigint | null, alpha: bigint | null, colorSpace: RGBColorSpace | null = null) {
+  public readonly alpha: number;
+  public constructor (red: number | null, green: number | null, blue: number | null, alpha: number | null, colorSpace: RGBColorSpace | null = null) {
     const isNull = (red === null && green === null && blue === null && alpha === null);
     if (!isNull && (red === null || green === null || blue === null || alpha === null)) {
       throw new Error('RGBAColor: All parameters must be provided or null.');
     }
-    super(bitDepth, red, green, blue, colorSpace);
-    this.alpha = alpha === null ? 0n : boundValue(alpha, this.maxValue);
+    super(red, green, blue, colorSpace);
+    this.alpha = alpha === null ? 0n : boundValue(alpha);
     if (!this.validate()) {
       throw new Error('RGBAColor: Invalid color');
     }

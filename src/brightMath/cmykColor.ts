@@ -6,20 +6,20 @@ import { boundValue } from './bigMath';
 import { convertCMYKtoRGB } from './cmykConverters';
 
 export default class CMYKColor extends NullableBaseColor implements IBaseColor {
-  public readonly cyan: bigint;
-  public readonly magenta: bigint;
-  public readonly yellow: bigint;
-  public readonly black: bigint;
-  public constructor (bitDepth: number, cyan: bigint | null, magenta: bigint | null, yellow: bigint | null, black: bigint | null) {
+  public readonly cyan: number;
+  public readonly magenta: number;
+  public readonly yellow: number;
+  public readonly black: number;
+  public constructor (cyan: number | null, magenta: number | null, yellow: number | null, black: number | null) {
     const isNull = (cyan === null && magenta === null && yellow === null && black === null);
     if (!isNull && (cyan === null || magenta === null || yellow === null || black === null)) {
       throw new Error('CMYKColor: All parameters must be provided or null.');
     }
-    super(EColorSpace.CMYK, bitDepth, isNull);
-    this.cyan = cyan === null ? 0n : boundValue(cyan, this.maxValue);
-    this.magenta = magenta === null ? 0n : boundValue(magenta, this.maxValue);
-    this.yellow = yellow === null ? 0n : boundValue(yellow, this.maxValue);
-    this.black = black === null ? 0n : boundValue(black, this.maxValue);
+    super(EColorSpace.CMYK, isNull);
+    this.cyan = cyan === null ? 0 : boundValue(cyan);
+    this.magenta = magenta === null ? 0 : boundValue(magenta);
+    this.yellow = yellow === null ? 0 : boundValue(yellow);
+    this.black = black === null ? 0 : boundValue(black);
     if (!this.validate()) {
       throw new Error('CMYKColor: Invalid color');
     }
@@ -48,10 +48,10 @@ export default class CMYKColor extends NullableBaseColor implements IBaseColor {
 
   public override validate (): boolean {
     return super.validate() &&
-            (this.cyan >= 0n && this.cyan <= this.maxValue) &&
-            (this.magenta >= 0n && this.magenta <= this.maxValue) &&
-            (this.yellow >= 0n && this.yellow <= this.maxValue) &&
-            (this.black >= 0n && this.black <= this.maxValue);
+            (this.cyan >= 0 && this.cyan <= 1) &&
+            (this.magenta >= 0 && this.magenta <= 1) &&
+            (this.yellow >= 0 && this.yellow <= 1) &&
+            (this.black >= 0 && this.black <= 1);
   }
 
   public xor (other: NullableBaseColor): NullableBaseColor {
@@ -61,15 +61,12 @@ export default class CMYKColor extends NullableBaseColor implements IBaseColor {
     if (!(other instanceof CMYKColor)) {
       throw new Error('CMYKColor: Other must be a CMYKColor');
     }
-    if (this.bitDepth !== other.bitDepth) {
-      throw new Error('CMYKColor: Bit depth must be the same.');
-    }
 
     const xorCyan = this.cyan ^ other.cyan;
     const xorMagenta = this.magenta ^ other.magenta;
     const xorYellow = this.yellow ^ other.yellow;
     const xorBlack = this.black ^ other.black;
-    return new CMYKColor(this.bitDepth, xorCyan, xorMagenta, xorYellow, xorBlack);
+    return new CMYKColor(xorCyan, xorMagenta, xorYellow, xorBlack);
   }
 
   public add (other: NullableBaseColor): NullableBaseColor {
@@ -79,14 +76,11 @@ export default class CMYKColor extends NullableBaseColor implements IBaseColor {
     if (!(other instanceof CMYKColor)) {
       throw new Error('CMYKColor: Other must be a CMYKColor');
     }
-    if (this.bitDepth !== other.bitDepth) {
-      throw new Error('CMYKColor: Bit depth must be the same.');
-    }
     const addCyan = this.cyan + other.cyan;
     const addMagenta = this.magenta + other.magenta;
     const addYellow = this.yellow + other.yellow;
     const addBlack = this.black + other.black;
-    return new CMYKColor(this.bitDepth, addCyan, addMagenta, addYellow, addBlack);
+    return new CMYKColor(addCyan, addMagenta, addYellow, addBlack);
   }
 
   public subtract (other: NullableBaseColor): NullableBaseColor {
@@ -96,14 +90,11 @@ export default class CMYKColor extends NullableBaseColor implements IBaseColor {
     if (!(other instanceof CMYKColor)) {
       throw new Error('CMYKColor: Other must be a CMYKColor');
     }
-    if (this.bitDepth !== other.bitDepth) {
-      throw new Error('CMYKColor: Bit depth must be the same.');
-    }
     const subtractCyan = this.cyan - other.cyan;
     const subtractMagenta = this.magenta - other.magenta;
     const subtractYellow = this.yellow - other.yellow;
     const subtractBlack = this.black - other.black;
-    return new CMYKColor(this.bitDepth, subtractCyan, subtractMagenta, subtractYellow, subtractBlack);
+    return new CMYKColor(subtractCyan, subtractMagenta, subtractYellow, subtractBlack);
   }
 
   public multiply (other: NullableBaseColor): NullableBaseColor {
@@ -113,14 +104,11 @@ export default class CMYKColor extends NullableBaseColor implements IBaseColor {
     if (!(other instanceof CMYKColor)) {
       throw new Error('CMYKColor: Other must be a CMYKColor');
     }
-    if (this.bitDepth !== other.bitDepth) {
-      throw new Error('CMYKColor: Bit depth must be the same.');
-    }
     const multiplyCyan = this.cyan * other.cyan;
     const multiplyMagenta = this.magenta * other.magenta;
     const multiplyYellow = this.yellow * other.yellow;
     const multiplyBlack = this.black * other.black;
-    return new CMYKColor(this.bitDepth, multiplyCyan, multiplyMagenta, multiplyYellow, multiplyBlack);
+    return new CMYKColor(multiplyCyan, multiplyMagenta, multiplyYellow, multiplyBlack);
   }
 
   public divide (other: NullableBaseColor): NullableBaseColor {
@@ -130,13 +118,10 @@ export default class CMYKColor extends NullableBaseColor implements IBaseColor {
     if (!(other instanceof CMYKColor)) {
       throw new Error('CMYKColor: Other must be a CMYKColor');
     }
-    if (this.bitDepth !== other.bitDepth) {
-      throw new Error('CMYKColor: Bit depth must be the same.');
-    }
     const divideCyan = this.cyan / other.cyan;
     const divideMagenta = this.magenta / other.magenta;
     const divideYellow = this.yellow / other.yellow;
     const divideBlack = this.black / other.black;
-    return new CMYKColor(this.bitDepth, divideCyan, divideMagenta, divideYellow, divideBlack);
+    return new CMYKColor( divideCyan, divideMagenta, divideYellow, divideBlack);
   }
 }

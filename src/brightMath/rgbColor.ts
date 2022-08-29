@@ -10,20 +10,20 @@ import RGBAColor from './rgbaColor';
 import { RGBColorSpace } from './rgbColorSpace';
 
 export default class RGBColor extends NullableBaseColor implements IBaseColor, IRGBColor {
-  public readonly red: bigint;
-  public readonly green: bigint;
-  public readonly blue: bigint;
+  public readonly red: number;
+  public readonly green: number;
+  public readonly blue: number;
   public readonly rgbColorSpace: RGBColorSpace | null;
-  public constructor (bitDepth: number, red: bigint | null, green: bigint | null, blue: bigint | null, colorSpace: RGBColorSpace | null = null) {
+  public constructor (red: number | null, green: number | null, blue: number | null, colorSpace: RGBColorSpace | null = null) {
     const isNull = (red === null && green === null && blue === null);
     if (!isNull && (red === null || green === null || blue === null)) {
       throw new Error('RGBColor: All parameters must be provided or null.');
     }
-    super(EColorSpace.RGB, bitDepth, isNull);
+    super(EColorSpace.RGB, isNull);
     this.rgbColorSpace = colorSpace;
-    this.red = red === null ? 0n : boundValue(red, this.maxValue);
-    this.green = green === null ? 0n : boundValue(green, this.maxValue);
-    this.blue = blue === null ? 0n : boundValue(blue, this.maxValue);
+    this.red = red === null ? 0 : boundValue(red);
+    this.green = green === null ? 0 : boundValue(green);
+    this.blue = blue === null ? 0 : boundValue(blue);
     this.channelData[getColorChannelIndex(EColorSpace.RGB, EColorChannel.Red)] = this.red;
     this.channelData[getColorChannelIndex(EColorSpace.RGB, EColorChannel.Green)] = this.green;
     this.channelData[getColorChannelIndex(EColorSpace.RGB, EColorChannel.Blue)] = this.blue;
@@ -37,9 +37,9 @@ export default class RGBColor extends NullableBaseColor implements IBaseColor, I
   {
       if (other === EColorSpace.CMYK) {
         if (this.isNull) {
-          return new CMYKColor(this.bitDepth, null, null, null, null);
+          return new CMYKColor(null, null, null, null);
         } else {
-          return convertRGBtoCMYK(this.red, this.green, this.blue, this.bitDepth);
+          return convertRGBtoCMYK(this.red, this.green, this.blue);
         }
       } else if (other === EColorSpace.HSV) {
         throw new NotImplementedError();
@@ -50,7 +50,7 @@ export default class RGBColor extends NullableBaseColor implements IBaseColor, I
       } else if (other === EColorSpace.xyY) {
       throw new NotImplementedError();
       } else if (other === EColorSpace.RGBA) {
-        return new RGBAColor(this.bitDepth, this.red, this.green, this.blue, 0n);
+        return new RGBAColor(this.red, this.green, this.blue, 0);
       } else if (other === EColorSpace.RGB) {
         return this;
       } else {
@@ -60,25 +60,24 @@ export default class RGBColor extends NullableBaseColor implements IBaseColor, I
 
   public override validate (): boolean {
     return super.validate() &&
-            (this.red >= 0n && this.red <= this.maxValue) &&
-            (this.green >= 0n && this.green <= this.maxValue) &&
-            (this.blue >= 0n && this.blue <= this.maxValue);
+            (this.red >= 0 && this.red <= 1) &&
+            (this.green >= 0 && this.green <= 1) &&
+            (this.blue >= 0 && this.blue <= 1);
   }
 
   public xor (other: NullableBaseColor): NullableBaseColor {
+    throw new Error("TODO: go discrete first or XOR the bits of the double?");
     if (other === null || other === undefined) {
       throw new Error('RGBColor: Other cannot be null');
     }
     if (!(other instanceof RGBColor)) {
       throw new Error('RGBColor: Other must be a RGBColor');
     }
-    if (other.bitDepth !== this.bitDepth) {
-      throw new Error('RGBColor: Bit depth must be the same.');
-    }
-    const xorRed = this.red ^ other.red;
-    const xorGreen = this.green ^ other.green;
-    const xorBlue = this.blue ^ other.blue;
-    return new RGBColor( this.bitDepth, xorRed, xorGreen, xorBlue);
+    const otherRGB = other as RGBColor;
+    const xorRed = this.red ^ otherRGB.red;
+    const xorGreen = this.green ^ otherRGB.green;
+    const xorBlue = this.blue ^ otherRGB.blue;
+    return new RGBColor(xorRed, xorGreen, xorBlue);
   }
 
   public add (other: NullableBaseColor): NullableBaseColor {
@@ -88,13 +87,10 @@ export default class RGBColor extends NullableBaseColor implements IBaseColor, I
     if (!(other instanceof RGBColor)) {
       throw new Error('RGBColor: Other must be a RGBColor');
     }
-    if (other.bitDepth !== this.bitDepth) {
-      throw new Error('RGBColor: Bit depth must be the same.');
-    }
     const addRed = this.red + other.red;
     const addGreen = this.green + other.green;
     const addBlue = this.blue + other.blue;
-    return new RGBColor(this.bitDepth, addRed, addGreen, addBlue);
+    return new RGBColor(addRed, addGreen, addBlue);
   }
 
   public subtract (other: NullableBaseColor): NullableBaseColor {
@@ -104,14 +100,10 @@ export default class RGBColor extends NullableBaseColor implements IBaseColor, I
     if (!(other instanceof RGBColor)) {
       throw new Error('RGBColor: Other must be a RGBColor');
     }
-
-    if (other.bitDepth !== this.bitDepth) {
-      throw new Error('RGBColor: Bit depth must be the same.');
-    }
     const subtractRed = this.red - other.red;
     const subtractGreen = this.green - other.green;
     const subtractBlue = this.blue - other.blue;
-    return new RGBColor( this.bitDepth, subtractRed, subtractGreen, subtractBlue);
+    return new RGBColor(subtractRed, subtractGreen, subtractBlue);
   }
 
   public multiply (other: NullableBaseColor): NullableBaseColor {
@@ -121,14 +113,10 @@ export default class RGBColor extends NullableBaseColor implements IBaseColor, I
     if (!(other instanceof RGBColor)) {
       throw new Error('RGBColor: Other must be a RGBColor');
     }
-
-    if (other.bitDepth !== this.bitDepth) {
-      throw new Error('RGBColor: Bit depth must be the same.');
-    }
     const multiplyRed = this.red * other.red;
     const multiplyGreen = this.green * other.green;
     const multiplyBlue = this.blue * other.blue;
-    return new RGBColor(this.bitDepth, multiplyRed, multiplyGreen, multiplyBlue);
+    return new RGBColor(multiplyRed, multiplyGreen, multiplyBlue);
   }
 
   public divide (other: NullableBaseColor): NullableBaseColor {
@@ -138,13 +126,9 @@ export default class RGBColor extends NullableBaseColor implements IBaseColor, I
     if (!(other instanceof RGBColor)) {
       throw new Error('RGBColor: Other must be a RGBColor');
     }
-
-    if (other.bitDepth !== this.bitDepth) {
-      throw new Error('RGBColor: Bit depth must be the same.');
-    }
     const divideRed = this.red / other.red;
     const divideGreen = this.green / other.green;
     const divideBlue = this.blue / other.blue;
-    return new RGBColor(this.bitDepth, divideRed, divideGreen, divideBlue);
+    return new RGBColor(divideRed, divideGreen, divideBlue);
   }
 }

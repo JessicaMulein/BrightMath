@@ -4,16 +4,13 @@ import { EColorChannel, EColorSpace } from './enumerations';
 
 export interface IColorDTO {
     readonly sourceColorBase: EColorSpace;
-    readonly bitDepth: number;
 }
 
 export interface IBaseColor extends IColorDTO {
     readonly sourceColorBase: EColorSpace;
-    readonly bitDepth: number;
-    readonly maxValue: bigint;
-    readonly channelData: Array<bigint>;
+    readonly channelData: Array<number>;
     readonly isNull: boolean;
-    getChannelData: (channel: EColorChannel) => bigint;
+    getChannelData: (channel: EColorChannel) => number;
     getChannelType: (channelIndex: number) => EColorChannel;
     getChannelIndex: (channel: EColorChannel) => number;
     getChannelCount: () => number;
@@ -26,9 +23,9 @@ export interface IBaseColor extends IColorDTO {
   }
 
 export interface IRGBColor extends IColorDTO {
-    readonly red: bigint;
-    readonly green: bigint;
-    readonly blue: bigint;
+    readonly red: number;
+    readonly green: number;
+    readonly blue: number;
 }
 
 export function isRGBColor(color: IColorDTO): color is IRGBColor {
@@ -36,7 +33,7 @@ export function isRGBColor(color: IColorDTO): color is IRGBColor {
 }
 
 export interface IRGBAColor extends IRGBColor {
-    readonly alpha: bigint;
+    readonly alpha: number;
 }
 
 export function isRGBAColor(color: IColorDTO): color is IRGBAColor {
@@ -47,9 +44,9 @@ export function isRGBAColor(color: IColorDTO): color is IRGBAColor {
 }
 
 export interface IRGBShortColor extends IRGBColor {
-    readonly r: bigint;
-    readonly g: bigint;
-    readonly b: bigint;
+    readonly r: number;
+    readonly g: number;
+    readonly b: number;
 }
 
 export function isRGBShortColor(color: IColorDTO): color is IRGBShortColor {
@@ -57,7 +54,7 @@ export function isRGBShortColor(color: IColorDTO): color is IRGBShortColor {
 }
 
 export interface IRGBAShortColor extends IRGBShortColor {
-    readonly a: bigint;
+    readonly a: number;
 }
 
 export function isRGBAShortColor(color: IColorDTO): color is IRGBAShortColor {
@@ -68,10 +65,10 @@ export function isRGBAShortColor(color: IColorDTO): color is IRGBAShortColor {
 }
 
 export interface ICMYKColor extends IColorDTO {
-    readonly cyan: bigint;
-    readonly magenta: bigint;
-    readonly yellow: bigint;
-    readonly black: bigint;
+    readonly cyan: number;
+    readonly magenta: number;
+    readonly yellow: number;
+    readonly black: number;
 }
 
 export function isCMYKColor(color: IColorDTO): color is ICMYKColor {
@@ -82,10 +79,10 @@ export function isCMYKColor(color: IColorDTO): color is ICMYKColor {
 }
 
 export interface ICMYKShortColor extends ICMYKColor {
-    readonly c: bigint;
-    readonly m: bigint;
-    readonly y: bigint;
-    readonly k: bigint;
+    readonly c: number;
+    readonly m: number;
+    readonly y: number;
+    readonly k: number;
 }
 
 export function isCMYKShortColor(color: IColorDTO): color is ICMYKShortColor {
@@ -108,9 +105,9 @@ export function isHSVColor(color: IColorDTO): color is IHSVColor {
 }
 
 export interface IHSVShortColor extends IHSVColor {
-    readonly h: bigint;
-    readonly s: bigint;
-    readonly v: bigint;
+    readonly h: number;
+    readonly s: number;
+    readonly v: number;
 }
 
 export function isHSVShortColor(color: IColorDTO): color is IHSVShortColor {

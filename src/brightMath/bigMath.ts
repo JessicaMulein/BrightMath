@@ -1,6 +1,6 @@
-export function boundValue (value: bigint, maxValue: bigint): bigint {
-    const lowerBounded = 0n > value ? 0n : value;
-    const upperBounded = maxValue < lowerBounded ? maxValue : lowerBounded;
+export function boundValue (value: number): number {
+    const lowerBounded = 0 > value ? 0 : value;
+    const upperBounded = 1 < lowerBounded ? 1 : lowerBounded;
     return upperBounded;
   }
 
